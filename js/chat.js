@@ -1,34 +1,34 @@
-async function askQuestion() {
+
+async function askQuestionToSpace() {
   const input = document.getElementById("chat-input");
-  const responseBox = document.getElementById("chat-response");
-      const contentBox = document.getElementById("chat-content");
-const question = input.value.trim();
- if (!question) return;
+  const contentBox = document.getElementById("chat-content");
+  const q = input.value.trim();
+  if (!q) return;
 
- // Show box & reset content
-      responseBox.style.display = "block";
-      contentBox.innerHTML = "🧠 Thinking...";
+  contentBox.innerHTML = "🧠 Thinking...";
+
   try {
-   const response = await fetch("http://localhost:8001/ask", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query: question })
-  });
+    const spaceUrl = "https://huggingface.co/spaces/atharvabillore001/shopper-help-rag";
+    const api = spaceUrl + "/api/predict/";
 
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  let fullText = "";
+    const res = await fetch(api, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data: [q] })
+    });
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    const chunk = decoder.decode(value, { stream: true });
-    fullText += chunk;
-   contentBox.innerHTML = marked.parse(fullText);
-  }
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error("Space error: " + res.status + " - " + text);
+    }
 
+    const json = await res.json();
+    // Gradio usually returns output in json.data[0] (or json.data)
+    const out = json?.data?.[0] ?? (Array.isArray(json?.data) ? json.data.join("\n") : json.data);
+    // If your Space returns plain text or markdown, render with marked (or plain)
+    contentBox.innerHTML = marked ? marked.parse(out) : out;
   } catch (err) {
-    contentBox.innerText = "Error contacting AI.";
     console.error(err);
+    contentBox.innerText = "Error contacting the demo. See console for details.";
   }
 }
