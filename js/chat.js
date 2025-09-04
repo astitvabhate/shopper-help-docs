@@ -1,5 +1,5 @@
 
-async function askQuestionToSpace() {
+async function askQuestion() {
   const input = document.getElementById("chat-input");
   const contentBox = document.getElementById("chat-content");
   const q = input.value.trim();
@@ -32,3 +32,4 @@ async function askQuestionToSpace() {
     contentBox.innerText = "Error contacting the demo. See console for details.";
   }
 }
+
